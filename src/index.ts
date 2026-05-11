@@ -232,6 +232,12 @@ export default function (pi: ExtensionAPI) {
 				reason: `⚠️ Guardrail triggered\n\nCommand: \`${command}\`\nRisk: ${result.reason}\nLevel: ${result.level}\n\nProceed?`,
 			};
 		}
+		if (result.level === "warn") {
+			return {
+				block: false,
+				reason: `⚠️ Guardrail warning\n\nCommand: \`${command}\`\nRisk: ${result.reason}\nLevel: ${result.level}\n\nProceed with caution.`,
+			};
+		}
 	});
 
 	// Edit/Write guardrail: intercept protected paths
@@ -251,6 +257,12 @@ export default function (pi: ExtensionAPI) {
 					reason: `⚠️ Guardrail triggered\n\nPath: \`${filePath}\`\nRisk: ${result.reason}\nLevel: ${result.level}\n\nProceed?`,
 				};
 			}
+			if (result.level === "warn") {
+				return {
+					block: false,
+					reason: `⚠️ Guardrail warning\n\nPath: \`${filePath}\`\nRisk: ${result.reason}\nLevel: ${result.level}\n\nProceed with caution.`,
+				};
+			}
 		}
 
 		if (isToolCallEventType("write", event)) {
@@ -266,6 +278,12 @@ export default function (pi: ExtensionAPI) {
 				return {
 					block: true,
 					reason: `⚠️ Guardrail triggered\n\nPath: \`${filePath}\`\nRisk: ${result.reason}\nLevel: ${result.level}\n\nProceed?`,
+				};
+			}
+			if (result.level === "warn") {
+				return {
+					block: false,
+					reason: `⚠️ Guardrail warning\n\nPath: \`${filePath}\`\nRisk: ${result.reason}\nLevel: ${result.level}\n\nProceed with caution.`,
 				};
 			}
 		}

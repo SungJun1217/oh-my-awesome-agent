@@ -190,6 +190,10 @@ function buildReport(results: DoctorResult[]): string {
 	return report;
 }
 
+function hasCritical(results: DoctorResult[]): boolean {
+	return results.some((r) => r.status === "CRITICAL");
+}
+
 export function registerDoctor(pi: ExtensionAPI): void {
 	pi.registerCommand("aa-doctor", {
 		description: "Show oh-my-awesome-agent load status",
@@ -197,11 +201,9 @@ export function registerDoctor(pi: ExtensionAPI): void {
 			setCommandSessionName(pi, "aa-doctor", "");
 			const results = diagnose();
 			const report = buildReport(results);
-			ctx.ui.notify(report, hasCritical(results) ? "warning" : "info");
+			if (ctx.ui) {
+				ctx.ui.notify(report, hasCritical(results) ? "warning" : "info");
+			}
 		},
 	});
-}
-
-function hasCritical(results: DoctorResult[]): boolean {
-	return results.some((r) => r.status === "CRITICAL");
 }

@@ -79,7 +79,7 @@ const PROTECTED_PATTERNS: Array<{
 		level: "block",
 	},
 	{
-		pattern: /^(\/|\$HOME\/|~\/)/,
+		pattern: /^(\$HOME\/|~\/)/,
 		reason: "Home directory file",
 		level: "warn",
 	},

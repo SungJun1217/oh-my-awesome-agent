@@ -42,8 +42,8 @@ function costScore(model: Model<Api>): number {
 	const total = model.cost.input + model.cost.output;
 	if (total <= 0) return 4;
 	if (total <= 1) return 3;
-	if (total <= 5) return 1;
-	if (total <= 20) return 0;
+	if (total <= 5) return 2;
+	if (total <= 20) return 1;
 	return -2;
 }
 

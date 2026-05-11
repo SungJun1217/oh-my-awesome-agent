@@ -24,7 +24,7 @@ const DESTRUCTIVE_PATTERNS: Array<{
 		level: "block",
 	},
 	{
-		pattern: /\brm\s+-rf\s*\$home/,
+		pattern: /\brm\s+-rf\s*(\$home|\$HOME|"\$HOME"|'\$HOME'|\$\{HOME\}|~)/,
 		reason: "Recursive delete home directory",
 		level: "block",
 	},
@@ -34,7 +34,7 @@ const DESTRUCTIVE_PATTERNS: Array<{
 		level: "block",
 	},
 	{
-		pattern: /\benv\s*\|.*curl/,
+		pattern: /\b(env|printenv)\s*\|.*curl/,
 		reason: "Potential secret exfiltration",
 		level: "block",
 	},
