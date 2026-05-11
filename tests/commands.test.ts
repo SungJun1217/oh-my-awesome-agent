@@ -1,5 +1,6 @@
 import type { Api, Model } from "@earendil-works/pi-ai";
 import { describe, expect, it } from "vitest";
+import extension from "../src/index.js";
 import {
 	selectModelForCommand,
 	thinkingLevelForCommand,
@@ -35,6 +36,34 @@ describe("constants exports", () => {
 		const { HEADER } = await import("../src/constants.js");
 		expect(HEADER).toContain("oh-my-awesome-agent");
 		expect(HEADER).toContain("Ralph-loop");
+	});
+});
+
+describe("extension loading", () => {
+	it("does not call runtime action methods during registration", () => {
+		const handlers: Record<string, unknown> = {};
+		const shortcuts: Array<{ shortcut: string; description?: string }> = [];
+		const pi = {
+			on: (eventName: string, handler: unknown) => {
+				handlers[eventName] = handler;
+			},
+			registerCommand: () => {},
+			registerShortcut: (
+				shortcut: string,
+				options: { description?: string },
+			) => {
+				shortcuts.push({ shortcut, description: options.description });
+			},
+			getSessionName: () => {
+				throw new Error("runtime action called during extension loading");
+			},
+		} as unknown as Parameters<typeof extension>[0];
+
+		expect(() => extension(pi)).not.toThrow();
+		expect(Object.keys(handlers)).toContain("session_start");
+		expect(shortcuts).toEqual([
+			{ shortcut: "ctrl+alt+w", description: "Cycle workflow mode" },
+		]);
 	});
 });
 

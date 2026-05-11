@@ -35,7 +35,8 @@
     "tsconfig.smoke.json",
     "README.md",
     "AGENTS.md",
-    "SPEC.md"
+    "SPEC.md",
+    "CLAUDE.md"
   ],
   "engines": {
     "node": ">=18.0.0"

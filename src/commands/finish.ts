@@ -42,7 +42,7 @@ ${TRUTH_STATES}
 </constraints>
 
 <execution_loop>
-1. **Establish scope** from explicit instructions, git diff/status, staged diff, recent files, or failing output.
+1. **Establish scope** from explicit instructions, git diff/status, staged diff, recent files, or failing output. State assumptions/unknowns/tradeoffs.
 2. **Review current state**: changed files, obvious bugs, incomplete edits, TODOs, missing imports, broken tests.
 3. **Resolve safe scoped issues** only.
 4. **Verify** with focused checks. Rerun after fixes when practical.
@@ -77,6 +77,7 @@ ${SHARED_CONSTRAINTS}
 - \`path\`: what changed
 
 **Verified:**
+- Include at least one concrete check (tests/typecheck/lint/build), or state why checks could not be run.
 - \`command\` — passed/failed/skipped
 
 **Loop summary:**

@@ -1,5 +1,10 @@
-import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import type {
+	ExtensionAPI,
+	ExtensionContext,
+	ExtensionUIContext,
+} from "@earendil-works/pi-coding-agent";
 import { isToolCallEventType } from "@earendil-works/pi-coding-agent";
+import { Key } from "@earendil-works/pi-tui";
 import { registerDoctor } from "./commands/doctor.js";
 import { createFinishPrompt } from "./commands/finish.js";
 import { createHyperplanPrompt } from "./commands/hyperplan.js";
@@ -15,38 +20,19 @@ import {
 	type WorkflowCommand,
 } from "./model-routing.js";
 import { setCommandSessionName } from "./utils/session.js";
-
-function parseWorkflowCommand(
-	text: string,
-): { command: WorkflowCommand; args: string } | undefined {
-	const match = text.match(
-		/^\/(ultrawork|ulw|hyperplan|scout|review|finish)(?:\s+([\s\S]*))?$/,
-	);
-	if (!match) return undefined;
-
-	return { command: match[1] as WorkflowCommand, args: match[2] ?? "" };
-}
-
-function commandPersonaLabel(command: WorkflowCommand): string {
-	switch (command) {
-		case "ultrawork":
-		case "ulw":
-			return "Executor";
-		case "hyperplan":
-			return "Planner";
-		case "scout":
-			return "Scout";
-		case "review":
-			return "Reviewer";
-		case "finish":
-			return "Finisher";
-		default:
-			return "Workflow";
-	}
-}
+import {
+	composeWorkflowEditorText,
+	nextWorkflowCommand,
+	parseWorkflowCommandText,
+	workflowCommandFromSessionName,
+	workflowEditorArgs,
+	workflowRoleLabel,
+	workflowStatusColor,
+	workflowStatusText,
+} from "./utils/workflow-ui.js";
 
 function transformWorkflowCommand(text: string): string | undefined {
-	const parsed = parseWorkflowCommand(text);
+	const parsed = parseWorkflowCommandText(text);
 	if (!parsed) return undefined;
 
 	const { command, args } = parsed;
@@ -68,29 +54,49 @@ function transformWorkflowCommand(text: string): string | undefined {
 	}
 }
 
+type WorkflowUiContext = Pick<
+	ExtensionContext,
+	"hasUI" | "model" | "modelRegistry"
+> & {
+	ui: Pick<
+		ExtensionUIContext,
+		"getEditorText" | "notify" | "setEditorText" | "setStatus" | "theme"
+	>;
+};
+
+const WORKFLOW_STATUS_KEY = "oh-my-awesome-agent:workflow";
+
+function setWorkflowStatus(
+	ctx: WorkflowUiContext,
+	command: WorkflowCommand | undefined,
+): void {
+	if (!ctx.hasUI) return;
+
+	if (!command) {
+		ctx.ui.setStatus(WORKFLOW_STATUS_KEY, ctx.ui.theme.fg("dim", "Ready"));
+		return;
+	}
+
+	ctx.ui.setStatus(
+		WORKFLOW_STATUS_KEY,
+		ctx.ui.theme.fg(workflowStatusColor(command), workflowStatusText(command)),
+	);
+}
+
 export default function (pi: ExtensionAPI) {
-	// Session start notification
-	pi.on("session_start", async (_event, ctx) => {
-		ctx.ui.notify(
-			"oh-my-awesome-agent loaded: /ultrawork, /scout, /review, /finish",
-			"info",
-		);
-	});
+	let activeWorkflowCommand: WorkflowCommand | undefined;
 
-	// Print/RPC-safe slash command transform. Extension commands that call
-	// pi.sendUserMessage() can hang in print mode, so transform the initial
-	// slash command into the underlying prompt before command dispatch.
-	pi.on("input", async (event, ctx) => {
-		if (event.source === "extension") return { action: "continue" };
-		const text = event.text.trim();
-		const parsed = parseWorkflowCommand(text);
-		if (!parsed) return { action: "continue" };
-
-		// Make the active workflow/persona visible in the UI.
-		setCommandSessionName(pi, parsed.command, parsed.args);
+	async function applyWorkflowCommand(
+		ctx: WorkflowUiContext,
+		command: WorkflowCommand,
+		args: string,
+	): Promise<void> {
+		setCommandSessionName(pi, command, args);
+		activeWorkflowCommand = command;
+		setWorkflowStatus(ctx, activeWorkflowCommand);
 		if (ctx.hasUI) {
 			ctx.ui.notify(
-				`oh-my-awesome-agent mode: ${commandPersonaLabel(parsed.command)} (/${parsed.command})`,
+				`oh-my-awesome-agent mode: ${workflowRoleLabel(command)} (/${command})`,
 				"info",
 			);
 		}
@@ -98,34 +104,97 @@ export default function (pi: ExtensionAPI) {
 		const shouldRouteModel =
 			process.env.OH_MY_AWESOME_AGENT_DISABLE_MODEL_ROUTING !== "1";
 		if (shouldRouteModel) {
-			const desiredThinkingLevel = thinkingLevelForCommand(parsed.command);
-			const availableModels = ctx.modelRegistry.getAvailable();
-			const selectedModel = selectModelForCommand(
-				parsed.command,
-				availableModels,
-				ctx.model,
-			);
-			if (selectedModel) {
-				const changed =
-					!ctx.model ||
-					ctx.model.provider !== selectedModel.provider ||
-					ctx.model.id !== selectedModel.id;
-				if (changed) {
-					const success = await pi.setModel(selectedModel);
-					if (success && ctx.hasUI) {
-						ctx.ui.notify(
-							`oh-my-awesome-agent routed /${parsed.command} to ${selectedModel.provider}/${selectedModel.id}`,
-							"info",
-						);
+			try {
+				const desiredThinkingLevel = thinkingLevelForCommand(command);
+				const availableModels = ctx.modelRegistry.getAvailable();
+				const selectedModel = selectModelForCommand(
+					command,
+					availableModels,
+					ctx.model,
+				);
+				if (selectedModel) {
+					const changed =
+						!ctx.model ||
+						ctx.model.provider !== selectedModel.provider ||
+						ctx.model.id !== selectedModel.id;
+					if (changed) {
+						const success = await pi.setModel(selectedModel);
+						if (success && ctx.hasUI) {
+							ctx.ui.notify(
+								`oh-my-awesome-agent routed /${command} to ${selectedModel.provider}/${selectedModel.id}`,
+								"info",
+							);
+						}
 					}
 				}
+				pi.setThinkingLevel(desiredThinkingLevel);
+			} catch (error) {
+				if (ctx.hasUI) {
+					ctx.ui.notify(
+						`oh-my-awesome-agent model routing failed: ${error instanceof Error ? error.message : String(error)}`,
+						"warning",
+					);
+				}
 			}
-			pi.setThinkingLevel(desiredThinkingLevel);
 		}
+	}
 
-		const transformed = transformWorkflowCommand(text);
+	// Session start notification
+	pi.on("session_start", async (_event, ctx) => {
+		activeWorkflowCommand = workflowCommandFromSessionName(pi.getSessionName());
+		setWorkflowStatus(ctx, activeWorkflowCommand);
+		if (ctx.hasUI) {
+			ctx.ui.notify(
+				"oh-my-awesome-agent loaded: /ultrawork, /scout, /review, /finish",
+				"info",
+			);
+		}
+	});
+
+	// Print/RPC-safe slash command transform. Extension commands that call
+	// pi.sendUserMessage() can hang in print mode, so transform the initial
+	// slash command into the underlying prompt before command dispatch.
+	pi.on("input", async (event, ctx) => {
+		if (event.source === "extension") return { action: "continue" };
+		const parsed = parseWorkflowCommandText(event.text);
+		if (!parsed) return { action: "continue" };
+
+		// Make the active workflow/persona visible in the UI.
+		const workflowCtx = ctx as WorkflowUiContext;
+		if (!workflowCtx.modelRegistry) {
+			return { action: "continue" };
+		}
+		await applyWorkflowCommand(workflowCtx, parsed.command, parsed.args);
+
+		const transformed = transformWorkflowCommand(event.text);
 		if (!transformed) return { action: "continue" };
 		return { action: "transform", text: transformed };
+	});
+
+	pi.on("model_select", async (_event, ctx) => {
+		setWorkflowStatus(ctx, activeWorkflowCommand);
+	});
+
+	pi.registerShortcut(Key.ctrlAlt("w"), {
+		description: "Cycle workflow mode",
+		handler: async (ctx) => {
+			const nextCommand = nextWorkflowCommand(activeWorkflowCommand);
+			const currentText = ctx.hasUI ? ctx.ui.getEditorText() : "";
+			const nextEditorText = composeWorkflowEditorText(
+				nextCommand,
+				currentText,
+			);
+			const args = workflowEditorArgs(currentText);
+
+			if (ctx.hasUI) {
+				ctx.ui.setEditorText(nextEditorText);
+			}
+
+			const workflowCtx = ctx as WorkflowUiContext;
+			if (workflowCtx.modelRegistry) {
+				await applyWorkflowCommand(workflowCtx, nextCommand, args);
+			}
+		},
 	});
 
 	// System prompt priming for workflow commands

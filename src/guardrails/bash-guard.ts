@@ -112,6 +112,10 @@ const DESTRUCTIVE_PATTERNS: Array<{
  */
 export function assessBashRisk(command: string): GuardResult {
 	const normalized = command.trim().toLowerCase();
+	// Explicit bypass for interactive confirmations.
+	// Usage: include `pi-allow:` after user confirmation.
+	// Example: `cd repo && pi-allow: git commit -m "..."`
+	if (normalized.includes("pi-allow:")) return { level: "allow" };
 
 	for (const { pattern, reason, level } of DESTRUCTIVE_PATTERNS) {
 		if (pattern.test(normalized)) {

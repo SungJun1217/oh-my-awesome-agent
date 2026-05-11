@@ -29,6 +29,10 @@ export const SHARED_CONSTRAINTS = `
 - Prefer precise \`edit\` for existing text replacement; use \`write\` only for new files or full rewrites that are clearly safer.
 - Avoid unrelated formatting or cleanup.
 - Preserve public APIs unless the task requires changing them.
+
+- Think before coding: state assumptions/unknowns/tradeoffs before the first edit.
+- Simplicity first: minimum code that solves the problem; nothing speculative.
+- Surgical changes: touch only what you must; clean up only what your change made orphaned.
 </scope_guard>
 
 <ask_gate>

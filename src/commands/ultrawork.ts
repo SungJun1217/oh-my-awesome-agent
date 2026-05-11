@@ -31,7 +31,7 @@ ${TRUTH_STATES}
 ${SHARED_CONSTRAINTS}
 
 <execution_loop>
-1. **IntentGate**: identify the real goal, success criteria, constraints, and ambiguity. Ask only if blocked.
+1. **IntentGate**: identify the real goal and success criteria; list assumptions/unknowns/tradeoffs. Ask only if blocked.
 2. **Scout**: inspect relevant files, configs, tests, and existing patterns before editing.
 3. **Plan**: produce a concise plan with verification steps. Right-size to task complexity.
 4. **Build**: make the smallest correct changes. Preserve project style. Avoid unrelated cleanup.
@@ -86,12 +86,13 @@ ${SHARED_STYLE}
 - \`path/to/file:line-range\` — concise description
 
 ## Verification
+- Include at least one concrete check (tests/typecheck/lint/build), or explicitly state why checks could not be run.
 - Diagnostics: \`[command]\` → \`[result]\`
 - Tests: \`[command]\` → \`[result]\`
 - Build/Typecheck: \`[command]\` → \`[result]\`
 
 ## Assumptions / Notes
-- Key assumptions made and how they were handled
+- Key assumptions/unknowns/tradeoffs and how they were handled
 
 ## Summary
 - 1-2 sentence outcome statement including truth state

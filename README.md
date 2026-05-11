@@ -15,6 +15,7 @@ It adds disciplined commands, prompts, and skills without tmux teams, daemons, t
 - **Pi-native** — built on pi's extension/prompt/skill system
 - **Minimal by default** — only what you invoke is loaded
 - **Honest truth states** — never claims "finished" when checks still fail
+- **Simplicity & surgical diffs** — see `CLAUDE.md`
 
 ## Commands
 
@@ -29,6 +30,10 @@ It adds disciplined commands, prompts, and skills without tmux teams, daemons, t
 | `/aa-doctor` | Diagnostician | ❌ | Installation health check |
 
 * `/review fix` may apply narrow safe fixes.
+
+## Keyboard Shortcut
+
+- `Ctrl+Alt+W` cycles the active workflow mode and rewrites the editor prefix.
 
 ## Install
 
@@ -111,6 +116,10 @@ oh-my-awesome-agent/
 ## Runtime behavior
 
 Workflow slash surfaces are implemented as input transforms plus prompt templates. This avoids `registerCommand -> sendUserMessage` hangs in non-interactive `--print` mode while preserving slash UX.
+
+The footer status now shows the active workflow role (Executor / Planner / Scout / Reviewer / Finisher), so you can see which agent you’re in at a glance.
+
+Press `Ctrl+Alt+W` to rotate `/ulw → /hyperplan → /scout → /review → /finish` without retyping the slash command.
 
 `/aa-doctor` remains a real registered pi command because it reports extension health via UI notification.
 
