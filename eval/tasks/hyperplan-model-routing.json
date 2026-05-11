@@ -1,0 +1,20 @@
+{
+  "id": "hyperplan-model-routing",
+  "command": "hyperplan",
+  "description": "Plan a safe improvement to model routing without implementation.",
+  "prompt": "모델 라우팅 휴리스틱을 설정 가능하게 만드는 개선안을 계획해줘. 구현하지 말고 관련 파일을 근거로 계획만 세워.",
+  "expectedSignals": [
+    "src/model-routing.ts",
+    "src/index.ts",
+    "SPEC.md",
+    "tests/commands.test.ts",
+    "configuration",
+    "verification"
+  ],
+  "rubric": {
+    "correctness": "Grounds the plan in current files and preserves print/RPC-safe input transforms.",
+    "scopeControl": "Avoids broad architecture or dependency additions.",
+    "verification": "Includes focused tests and typecheck/smoke checks.",
+    "riskAwareness": "Calls out user override and auth/model availability behavior."
+  }
+}

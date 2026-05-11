@@ -1,0 +1,20 @@
+{
+  "id": "review-model-routing",
+  "command": "review",
+  "description": "Review model routing implementation for correctness and edge cases.",
+  "prompt": "src/model-routing.ts와 src/index.ts의 모델 라우팅 구현을 리뷰해줘. 수정하지 말고 correctness, edge case, UX 문제 중심으로 봐줘.",
+  "expectedSignals": [
+    "src/model-routing.ts",
+    "src/index.ts",
+    "getAvailable",
+    "setModel",
+    "setThinkingLevel",
+    "tie"
+  ],
+  "rubric": {
+    "findingQuality": "Reports concrete issues or clearly approves when no meaningful issue exists.",
+    "edgeCases": "Considers no models, current model ties, unavailable auth, and print/RPC mode.",
+    "evidence": "Cites specific files or code behavior.",
+    "noise": "Avoids generic advice and invented line numbers."
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "name": "oh-my-awesome-agent",
+  "version": "0.2.0",
+  "description": "Lightweight Ralph-loop workflow pack for pi. Disciplined commands, prompts, and skills without heavy multi-agent infrastructure.",
+  "type": "module",
+  "keywords": [
+    "pi-package",
+    "pi",
+    "coding-agent",
+    "workflow",
+    "ralph-loop",
+    "oh-my-openagent"
+  ],
+  "author": "jun",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jun/oh-my-awesome-agent.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jun/oh-my-awesome-agent/issues"
+  },
+  "homepage": "https://github.com/jun/oh-my-awesome-agent#readme",
+  "files": [
+    "extensions",
+    "prompts",
+    "skills",
+    "themes",
+    "src",
+    "dist",
+    "eval",
+    "scripts/eval-harness.mjs",
+    "smoke-test.sh",
+    "tsconfig.json",
+    "tsconfig.smoke.json",
+    "README.md",
+    "AGENTS.md",
+    "SPEC.md"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf dist",
+    "smoke": "bash smoke-test.sh",
+    "typecheck": "tsc -p tsconfig.smoke.json",
+    "lint": "biome check src/ extensions/ tests/",
+    "format": "biome check --write src/ extensions/ tests/",
+    "eval:models": "node scripts/eval-harness.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "pi": {
+    "extensions": [
+      "./extensions"
+    ],
+    "prompts": [
+      "./prompts"
+    ],
+    "skills": [
+      "./skills"
+    ],
+    "themes": [
+      "./themes"
+    ]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.15",
+    "typescript": "^5.7.3",
+    "vitest": "^4.1.5"
+  }
+}

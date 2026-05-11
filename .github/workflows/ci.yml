@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install peer dependency stub
+        run: |
+          mkdir -p node_modules/@earendil-works/pi-coding-agent
+          echo '{"name":"@earendil-works/pi-coding-agent","version":"0.0.0","main":"./dist/index.js","types":"./dist/index.d.ts"}' > node_modules/@earendil-works/pi-coding-agent/package.json
+          mkdir -p node_modules/@earendil-works/pi-coding-agent/dist/core/extensions
+          touch node_modules/@earendil-works/pi-coding-agent/dist/index.js
+          touch node_modules/@earendil-works/pi-coding-agent/dist/index.d.ts
+          touch node_modules/@earendil-works/pi-coding-agent/dist/core/extensions/types.d.ts
+
+      - name: Install TypeScript
+        run: npm install -D typescript
+
+      - name: Run smoke test
+        run: bash smoke-test.sh

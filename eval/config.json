@@ -1,0 +1,13 @@
+{
+  "piCommand": "pi",
+  "extensionPath": ".",
+  "outputDir": "eval/results",
+  "models": [],
+  "timeoutMs": 300000,
+  "tasks": [
+    "eval/tasks/scout-overview.json",
+    "eval/tasks/hyperplan-model-routing.json",
+    "eval/tasks/review-model-routing.json",
+    "eval/tasks/finish-verify-only.json"
+  ]
+}
