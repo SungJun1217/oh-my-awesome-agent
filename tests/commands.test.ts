@@ -93,8 +93,14 @@ describe("model routing", () => {
 			model("google", "gemini-2.5-flash", {
 				cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
 			}),
-			model("anthropic", "claude-sonnet-4-5", { reasoning: true }),
-			model("local", "qwen-coder-32b", { reasoning: true }),
+			model("anthropic", "claude-sonnet-4-5", {
+				reasoning: true,
+				thinkingLevelMap: { high: "high", medium: "medium", low: "low" },
+			}),
+			model("local", "qwen-coder-32b", {
+				reasoning: true,
+				thinkingLevelMap: { high: "high", medium: "medium", low: "low" },
+			}),
 		];
 
 		expect(selectModelForCommand("ultrawork", models)?.id).toBe(
@@ -108,10 +114,12 @@ describe("model routing", () => {
 			model("anthropic", "claude-opus-4-1", {
 				reasoning: true,
 				cost: { input: 15, output: 75, cacheRead: 0, cacheWrite: 0 },
+				thinkingLevelMap: { high: "high", medium: "medium", low: "low" },
 			}),
 			model("google", "gemini-2.5-flash", {
 				contextWindow: 1_000_000,
 				cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+				thinkingLevelMap: { high: "high", medium: "medium", low: "low" },
 			}),
 		];
 
@@ -145,6 +153,59 @@ describe("model routing", () => {
 	});
 
 	it("maps workflow commands to thinking levels", () => {
+		expect(thinkingLevelForCommand("ultrawork")).toBe("high");
+		expect(thinkingLevelForCommand("hyperplan")).toBe("high");
+		expect(thinkingLevelForCommand("scout")).toBe("medium");
+		expect(thinkingLevelForCommand("finish")).toBe("medium");
+	});
+
+	it("filters models by thinking level compatibility", () => {
+		const models = [
+			model("anthropic", "claude-sonnet-4-5", {
+				reasoning: true,
+				thinkingLevelMap: { high: "high", medium: "medium", low: "low" },
+			}),
+			model("google", "gemini-2.5-flash", {
+				thinkingLevelMap: { medium: "medium", low: "low" },
+			}),
+		];
+
+		expect(selectModelForCommand("ultrawork", models)?.id).toBe(
+			"claude-sonnet-4-5",
+		);
+		expect(selectModelForCommand("scout", models)?.id).toBe("gemini-2.5-flash");
+	});
+
+	it("falls back to routable models when no model supports required thinking level", () => {
+		const models = [
+			model("google", "gemini-2.5-flash", {
+				thinkingLevelMap: { low: "low" },
+			}),
+		];
+
+		expect(selectModelForCommand("ultrawork", models)?.id).toBe(
+			"gemini-2.5-flash",
+		);
+	});
+
+	it("applies latency scoring for scout and finish", () => {
+		const models = [
+			model("anthropic", "claude-opus-4-1", {
+				reasoning: true,
+				cost: { input: 15, output: 75, cacheRead: 0, cacheWrite: 0 },
+				thinkingLevelMap: { high: "high", medium: "medium", low: "low" },
+			}),
+			model("google", "gemini-2.5-flash", {
+				cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+				thinkingLevelMap: { high: "high", medium: "medium", low: "low" },
+			}),
+		];
+
+		expect(selectModelForCommand("scout", models)?.id).toBe("gemini-2.5-flash");
+		expect(selectModelForCommand("finish", models)?.id).toBeDefined();
+	});
+
+	it("uses unified command configuration", () => {
 		expect(thinkingLevelForCommand("ultrawork")).toBe("high");
 		expect(thinkingLevelForCommand("hyperplan")).toBe("high");
 		expect(thinkingLevelForCommand("scout")).toBe("medium");

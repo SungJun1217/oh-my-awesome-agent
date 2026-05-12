@@ -33,7 +33,10 @@ It adds disciplined commands, prompts, and skills without tmux teams, daemons, t
 
 ## Keyboard Shortcut
 
-- `Ctrl+Alt+W` cycles the active workflow mode and rewrites the editor prefix.
+Cycles the active workflow mode and rewrites the editor prefix:
+
+- macOS: `Ctrl+Option+W`
+- Linux: `Ctrl+Alt+W`
 
 ## Install
 
@@ -119,7 +122,10 @@ Workflow slash surfaces are implemented as input transforms plus prompt template
 
 The footer status now shows the active workflow role (Executor / Planner / Scout / Reviewer / Finisher), so you can see which agent you’re in at a glance.
 
-Press `Ctrl+Alt+W` to rotate `/ulw → /hyperplan → /scout → /review → /finish` without retyping the slash command.
+Press the cycle shortcut to rotate `/ulw → /hyperplan → /scout → /review → /finish` without retyping the slash command:
+
+- macOS: `Ctrl+Option+W`
+- Linux: `Ctrl+Alt+W`
 
 `/aa-doctor` remains a real registered pi command because it reports extension health via UI notification.
 

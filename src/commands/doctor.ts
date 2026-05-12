@@ -201,8 +201,13 @@ export function registerDoctor(pi: ExtensionAPI): void {
 			setCommandSessionName(pi, "aa-doctor", "");
 			const results = diagnose();
 			const report = buildReport(results);
+
 			if (ctx.ui) {
 				ctx.ui.notify(report, hasCritical(results) ? "warning" : "info");
+			} else {
+				// Print mode does not provide an ExtensionUIContext.
+				// Fall back to stdout so `/aa-doctor` is still useful.
+				console.log(report);
 			}
 		},
 	});

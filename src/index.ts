@@ -139,13 +139,16 @@ export default function (pi: ExtensionAPI) {
 		}
 	}
 
+	const workflowCycleShortcutLabel =
+		process.platform === "darwin" ? "Ctrl+Option+W" : "Ctrl+Alt+W";
+
 	// Session start notification
 	pi.on("session_start", async (_event, ctx) => {
 		activeWorkflowCommand = workflowCommandFromSessionName(pi.getSessionName());
 		setWorkflowStatus(ctx, activeWorkflowCommand);
 		if (ctx.hasUI) {
 			ctx.ui.notify(
-				"oh-my-awesome-agent loaded: /ultrawork, /scout, /review, /finish",
+				`oh-my-awesome-agent loaded: /ulw, /hyperplan, /scout, /review, /finish (${workflowCycleShortcutLabel} to cycle)`,
 				"info",
 			);
 		}
